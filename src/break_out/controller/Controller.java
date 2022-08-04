@@ -1,0 +1,187 @@
+package break_out.controller;
+
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.security.Key;
+
+import break_out.model.Game;
+import break_out.model.Paddle;
+import break_out.view.Field;
+import break_out.view.StartScreen;
+import break_out.view.View;
+import break_out.model.Level;
+
+/**
+ * The controller takes care of the input events and reacts on those events by
+ * manipulating the view and updates the model.
+ * 
+ * @author dmlux modified by:
+ * 670498, Muhammed Enes Colak
+ * 660479, Hakob Steven Akopjan
+ * Abgabegruppe 75
+ */
+public class Controller implements ActionListener, KeyListener {
+
+    /**
+     * The game as model that is connected to this controller
+     */
+    private Game game;
+
+    /**
+     * The view that is connected to this controller
+     */
+    private View view;
+
+    
+    /**
+     * The constructor expects a view to construct itself.
+     * 
+     * @param view The view that is connected to this controller
+     */
+    public Controller(View view) {
+        this.view = view;
+
+        // Assigning the listeners
+        assignActionListener();
+        assignKeyListener();
+    }
+
+    /**
+     * The controller gets all buttons out of the view with this method and adds
+     * this controller as an action listener. Every time the user pushed a
+     * button the action listener (this controller) gets an action event.
+     */
+    private void assignActionListener() {
+        // Get the start screen to add this controller as action
+        // listener to the buttons.
+        view.getStartScreen().addActionListenerToStartButton(this);
+        view.getStartScreen().addActionListenerToQuitButton(this);
+    }
+    
+    /**
+     * With this method the controller adds himself as a KeyListener.
+     * Every time the user pushed a key the KeyListener (this controller) gets an KeyEvent.
+     */
+    private void assignKeyListener() {
+        // Get the field to add this controller as KeyListener
+        view.getField().addKeyListener(this);
+    }
+
+    /**
+     * Every time the user pushed a button the action listener (this controller) 
+     * gets an action event and starts this method
+     */
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        // Getting the start screen
+        StartScreen startScreen = view.getStartScreen();
+        
+        // The 'start game' button was pressed
+        if (startScreen.getStartButton().equals(e.getSource())) {
+            // Getting the players name from the input
+            String playersName = startScreen.getPlayersName();
+            String playerName2 = startScreen.getPlayerName2();
+            playersName = playersName.trim();
+
+            if (playersName.length() < 1) {
+                // If the players name is empty it is invalid
+                startScreen.showError("Der Name ist ungültig");
+            } else {    
+            	// Neues Game-Objekt erzeugen und dem View-Objekt bekanntgeben
+    	        game = new Game(this);
+    	        view.setGame(game);
+            }
+        }
+
+        // Der Spieler beendet das Spiel
+        else if (startScreen.getQuitButton().equals(e.getSource())) {
+            System.exit(0);
+        }
+    }
+ 
+    /**
+     * Methode des KeyListeners
+     */
+    @Override
+    public void keyTyped(KeyEvent e) {
+    	
+
+    }
+
+    /**
+     * Methode des KeyListeners
+     * Leertaste startet und pausiert das Spiel bzw stopt man den Ball.
+     * Man kann mit den Pfeiltasten Rechts und Links in die entsprechenden Richtungen bewegen.
+     * Espace Taste bringt einen zurueck zum Startmenue
+     * @param	e	KeyEvent
+     */
+    
+    @Override
+    public void keyPressed(KeyEvent e) {
+    	if ( e.getKeyChar() == KeyEvent.VK_SPACE) {
+    		if (game.getLevel().ballWasStarted() == true) {
+    			game.getLevel().stopBall();
+    		} else game.getLevel().startBall();
+    	} 
+    	if ( e.getKeyCode() == KeyEvent.VK_RIGHT) {
+    		//game.getLevel().getPaddle().setRichtung(1);
+            game.getPlayer1().getPaddle().setRichtung(1);
+    	}
+    	if (e.getKeyCode() == KeyEvent.VK_LEFT)	{
+        //	game.getLevel().getPaddle().setRichtung(-1);
+            game.getPlayer1().getPaddle().setRichtung(-1);
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_A){
+            game.getPlayer2().getPaddle().setRichtung(-1);
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_D){
+            game.getPlayer2().getPaddle().setRichtung(1);
+        }
+
+
+
+    	if ( e.getKeyChar() == KeyEvent.VK_ESCAPE) {
+    		game.getLevel().Spielneustart();
+    		
+    		toStartScreen();
+    	}
+    }
+
+    /**
+     * Methode des KeyListeners
+     */
+    @Override
+    public void keyReleased(KeyEvent e) {
+    	if ((e.getKeyCode() == KeyEvent.VK_RIGHT ) || (e.getKeyCode() == KeyEvent.VK_LEFT))	{
+        	game.getPlayer1().getPaddle().setRichtung(0);
+        }
+
+        if ((e.getKeyCode() == KeyEvent.VK_A ) || (e.getKeyCode() == KeyEvent.VK_D))	{
+            game.getPlayer2().getPaddle().setRichtung(0);
+        }
+
+    }
+
+    
+    /**
+     * Mit dieser Methode erfolgt das Umschalten vom Spielfeld zum StartScreen
+     */
+    public void toStartScreen() {
+    	view.showScreen(StartScreen.class.getName());
+    	view.getStartScreen().requestFocusInWindow();
+    }
+    
+    /**
+     * Mit dieser Methode erfolgt das Umschalten zum Spielfeld
+     */
+    public void toPlayground() {
+    	view.showScreen(Field.class.getName());
+    	view.getField().requestFocusInWindow();
+    }
+   
+}
